@@ -1,5 +1,7 @@
 package com.practice.employee.employeeManagement.employeeManagement.dto;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,7 +11,17 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class EmployeeDto {
 
-    String empName;
-    Integer empAge;
+    private Long id;
 
+    @NotBlank()
+    private String empName;
+
+    @NotBlank(message = "Designation is mandatory")
+    private String designation;
+
+    @NotBlank(message = "Location is mandatory")
+    private String location;
+
+    @Min(value = 0, message = "Salary must be positive")
+    private int salary;
 }
