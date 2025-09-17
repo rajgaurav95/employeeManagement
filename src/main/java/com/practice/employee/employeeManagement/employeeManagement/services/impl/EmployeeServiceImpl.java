@@ -6,6 +6,7 @@ import com.practice.employee.employeeManagement.employeeManagement.entities.Empl
 import com.practice.employee.employeeManagement.employeeManagement.exceptions.ResourceNotFoundException;
 import com.practice.employee.employeeManagement.employeeManagement.repositories.EmployeeRepository;
 import com.practice.employee.employeeManagement.employeeManagement.services.EmployeeService;
+import com.practice.employee.employeeManagement.employeeManagement.specifications.EmployeeSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -31,7 +33,15 @@ public class EmployeeServiceImpl implements EmployeeService {
     public List<EmployeeDto> getAllEmployee(GetQueryParamsDto getQueryParamsDto) {
         Pageable pageable = buildPageable(getQueryParamsDto);
 
-        Page<Employee> employees = employeeRepository.findAll(pageable);
+//        Specification<Employee> spec = Specification.where(EmployeeSpecification.hasLocation(getQueryParamsDto.getLocation())
+//                .and(EmployeeSpecification.hasDesignation(getQueryParamsDto.getDesignation())));
+
+        Specification<Employee> spec = Specification.allOf(
+                EmployeeSpecification.hasLocation(getQueryParamsDto.getLocation()),
+                EmployeeSpecification.hasDesignation(getQueryParamsDto.getDesignation())
+        );
+
+        Page<Employee> employees = employeeRepository.findAll(spec,pageable);
 
         return employees.stream()
                 .map(employee -> modelMapper.map(employee, EmployeeDto.class))
