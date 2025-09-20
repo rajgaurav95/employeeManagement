@@ -1,14 +1,15 @@
 package com.practice.employee.employeeManagement.employeeManagement.services;
 
-import com.practice.employee.employeeManagement.employeeManagement.dto.EmployeeDto;
-import com.practice.employee.employeeManagement.employeeManagement.dto.GetQueryParamsDto;
+import com.practice.employee.employeeManagement.employeeManagement.dto.requests.CreateEmployeeDto;
+import com.practice.employee.employeeManagement.employeeManagement.dto.requests.GetQueryParamsDto;
+import com.practice.employee.employeeManagement.employeeManagement.dto.responses.EmployeeResponseDto;
 
 import java.util.List;
 
 public interface EmployeeService {
-    public List<EmployeeDto> getAllEmployee(GetQueryParamsDto getQueryParamsDto);
+    public List<EmployeeResponseDto> getAllEmployee(GetQueryParamsDto getQueryParamsDto);
 
-    EmployeeDto saveEmployee( EmployeeDto employeeDto);
+    EmployeeResponseDto saveEmployee(CreateEmployeeDto employeeDto);
 
-    EmployeeDto getByEmpId(long empId);
+    EmployeeResponseDto getByEmpId(long empId);
 }

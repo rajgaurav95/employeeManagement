@@ -1,7 +1,8 @@
 package com.practice.employee.employeeManagement.employeeManagement.services.impl;
 
-import com.practice.employee.employeeManagement.employeeManagement.dto.EmployeeDto;
-import com.practice.employee.employeeManagement.employeeManagement.dto.GetQueryParamsDto;
+import com.practice.employee.employeeManagement.employeeManagement.dto.requests.CreateEmployeeDto;
+import com.practice.employee.employeeManagement.employeeManagement.dto.requests.GetQueryParamsDto;
+import com.practice.employee.employeeManagement.employeeManagement.dto.responses.EmployeeResponseDto;
 import com.practice.employee.employeeManagement.employeeManagement.entities.Employee;
 import com.practice.employee.employeeManagement.employeeManagement.exceptions.ResourceNotFoundException;
 import com.practice.employee.employeeManagement.employeeManagement.repositories.EmployeeRepository;
@@ -30,7 +31,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 
     @Override
-    public List<EmployeeDto> getAllEmployee(GetQueryParamsDto getQueryParamsDto) {
+    public List<EmployeeResponseDto> getAllEmployee(GetQueryParamsDto getQueryParamsDto) {
         Pageable pageable = buildPageable(getQueryParamsDto);
 
 //        Specification<Employee> spec = Specification.where(EmployeeSpecification.hasLocation(getQueryParamsDto.getLocation())
@@ -44,7 +45,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         Page<Employee> employees = employeeRepository.findAll(spec,pageable);
 
         return employees.stream()
-                .map(employee -> modelMapper.map(employee, EmployeeDto.class))
+                .map(employee -> modelMapper.map(employee, EmployeeResponseDto.class))
                 .collect(Collectors.toList());
     }
 
@@ -93,17 +94,17 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 
     @Override
-    public EmployeeDto saveEmployee(EmployeeDto employeeDto) {
+    public EmployeeResponseDto saveEmployee(CreateEmployeeDto employeeDto) {
         Employee employee = modelMapper.map(employeeDto, Employee.class);
         Employee savedEmployee = employeeRepository.save(employee);
         System.out.println("empl saved");
-        return modelMapper.map(savedEmployee,EmployeeDto.class);
+        return modelMapper.map(savedEmployee, EmployeeResponseDto.class);
     }
 
     @Override
-    public EmployeeDto getByEmpId(long empId) {
+    public EmployeeResponseDto getByEmpId(long empId) {
         Employee employee = employeeRepository.findById(empId)
                 .orElseThrow(() ->  new ResourceNotFoundException("employee not present in table"));
-        return modelMapper.map(employee,EmployeeDto.class);
+        return modelMapper.map(employee, EmployeeResponseDto.class);
     }
 }

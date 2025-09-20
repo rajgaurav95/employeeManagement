@@ -1,20 +1,14 @@
-package com.practice.employee.employeeManagement.employeeManagement.dto;
+package com.practice.employee.employeeManagement.employeeManagement.dto.requests;
 
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-import java.util.Date;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class EmployeeDto {
-
-    @Null(message = "Id must not be provided, it is auto-generated")
-    private Long id;
+public class CreateEmployeeDto {
 
     @NotBlank(message = "empName must not be blank")
     private String empName;
@@ -27,10 +21,4 @@ public class EmployeeDto {
 
     @Min(value = 0, message = "Salary must be positive")
     private int salary;
-
-    @Null(message = "createdAt must not be provided, it is system generated")
-    private LocalDateTime createdAt;
-
-    @Null(message = "updatedAt must not be provided, it is system generated")
-    private LocalDateTime updatedAt;
 }

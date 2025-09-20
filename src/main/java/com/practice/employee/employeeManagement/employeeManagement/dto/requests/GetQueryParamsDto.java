@@ -1,4 +1,4 @@
-package com.practice.employee.employeeManagement.employeeManagement.dto;
+package com.practice.employee.employeeManagement.employeeManagement.dto.requests;
 
 import com.practice.employee.employeeManagement.employeeManagement.dto.enums.SortBy;
 import com.practice.employee.employeeManagement.employeeManagement.dto.enums.SortDir;
