@@ -9,8 +9,14 @@ public class CaseInsensitiveEnumConverterFactory implements ConverterFactory<Str
 
     @Override
     public <T extends Enum> Converter<String, T> getConverter(Class<T> targetType) {
-        return new CaseInsensitiveEnumConverter<>(targetType);
+        // Only apply case-insensitive conversion to annotated enums
+        if (targetType.isAnnotationPresent(CaseInsensitiveEnum.class)) {
+            return new CaseInsensitiveEnumConverter<>(targetType);
+        }
+        // Default: Spring’s case-sensitive conversion
+        return source -> (T) Enum.valueOf(targetType, source);
     }
+
 
     private static class CaseInsensitiveEnumConverter<T extends Enum<T>> implements Converter<String, T> {
         private final Class<T> enumType;
