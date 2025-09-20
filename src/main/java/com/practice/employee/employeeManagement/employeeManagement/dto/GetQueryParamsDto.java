@@ -22,16 +22,16 @@ public class GetQueryParamsDto {
     private SortBy sortBy;   // ✅ nullable
     private SortDir sortDir; // ✅ nullable
 
-    // ✅ Case-insensitive setters
-    public void setSortBy(String sortBy) {
-        if (sortBy != null && !sortBy.isBlank()) {
-            this.sortBy = SortBy.valueOf(sortBy.toUpperCase());
-        }
-    }
+//    // ✅ Case-insensitive setters
+//    public void setSortBy(String sortBy) {
+//        if (sortBy != null && !sortBy.isBlank()) {
+//            this.sortBy = SortBy.valueOf(sortBy.toUpperCase());
+//        }
+//    }
 
-    public void setSortDir(String sortDir) {
-        if (sortDir != null && !sortDir.isBlank()) {
-            this.sortDir = SortDir.valueOf(sortDir.toUpperCase());
-        }
-    }
+//    public void setSortDir(String sortDir) {
+//        if (sortDir != null && !sortDir.isBlank()) {
+//            this.sortDir = SortDir.valueOf(sortDir.toUpperCase());
+//        }
+//    }
 }

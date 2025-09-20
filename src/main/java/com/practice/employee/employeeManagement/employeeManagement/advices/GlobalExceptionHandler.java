@@ -2,31 +2,153 @@ package com.practice.employee.employeeManagement.employeeManagement.advices;
 
 import com.practice.employee.employeeManagement.employeeManagement.exceptions.ConflictException;
 import com.practice.employee.employeeManagement.employeeManagement.exceptions.ResourceNotFoundException;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<String> handleResourceNotFoundException(Exception e){
-        return new ResponseEntity<>(e.getMessage(),HttpStatus.NOT_FOUND);
+    public ResponseEntity<ApiResponse> handleResourceNotFound(Exception exception){
+        ApiError apiError = ApiError
+                .builder()
+                .status(HttpStatus.NOT_FOUND)
+                .message(exception.getMessage())
+                .build();
+        return buildErrorResponseEntity(apiError);
     }
+
     @ExceptionHandler(ConflictException.class)
-    public ResponseEntity<String> handleConflictException(Exception e){
-        return new ResponseEntity<>(e.getMessage(),HttpStatus.CONFLICT);
+    public ResponseEntity<ApiResponse> handleConflictErrors(Exception exception){
+        ApiError apiError = ApiError
+                .builder()
+                .status(HttpStatus.CONFLICT)
+                .message(exception.getMessage())
+                .build();
+        return buildErrorResponseEntity(apiError);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<String> handleMethodArgumentException(Exception e){
-        return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+    public ResponseEntity<ApiResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        List<String> subErrors = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(Collectors.toList());
+
+        ApiError apiError = ApiError.builder()
+                .status(HttpStatus.BAD_REQUEST)
+                .message("Input validation failed")
+                .subErrors(subErrors)
+                .build();
+
+        return buildErrorResponseEntity(apiError);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse> handleIllegalArgument(IllegalArgumentException ex) {
+        ApiError apiError = ApiError.builder()
+                .status(HttpStatus.BAD_REQUEST)
+                .message("Input validation failed")
+                .subErrors(Collections.singletonList(ex.getMessage()))
+                .build();
+
+        return buildErrorResponseEntity(apiError);
+    }
+
+//    @ExceptionHandler(MethodArgumentNotValidException.class)
+//    public ResponseEntity<?> handleValidationExceptions(MethodArgumentNotValidException ex) {
+////        List<String> subErrors = ex.getBindingResult()
+////            .getFieldErrors()
+////            .stream()
+////            .map(error -> error.getField() + ": " + error.getDefaultMessage())
+////            .collect(Collectors.toList());
+////
+////        ApiError apiError = ApiError.builder()
+////                .status(HttpStatus.BAD_REQUEST)
+////                .message("Input validation failed")
+////                .subErrors(subErrors)
+////                .build();
+//        List<String> subErrors = ex.getBindingResult()
+//                .getFieldErrors()
+//                .stream()
+//                .map(error -> {
+//                    // If it's a type mismatch (enum conversion), customize the message
+//                    if (error.contains(TypeMismatchException.class)) {
+//                        Object rejectedValue = error.getRejectedValue();
+//                        Class<?> targetType = error.unwrap(TypeMismatchException.class).getRequiredType();
+//                        if (targetType != null && targetType.isEnum()) {
+//                            return error.getField() + ": Invalid value '" + rejectedValue +
+//                                    "'. Allowed values are: " +
+//                                    Arrays.toString(targetType.getEnumConstants());
+//                        }
+//                    }
+//                    // Default message for normal validation
+//                    return error.getField() + ": " + error.getDefaultMessage();
+//                })
+//                .collect(Collectors.toList());
+//
+//        ApiError apiError = ApiError.builder()
+//                .status(HttpStatus.BAD_REQUEST)
+//                .message("Input validation failed")
+//                .subErrors(subErrors)
+//                .build();
+//        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
+//    }
+//
+//    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+//    public ResponseEntity<?> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+//        String fieldName = ex.getName();             // e.g. "sortBy"
+//        String invalidValue = String.valueOf(ex.getValue()); // e.g. "EMP_NAMES"
+//
+//        String allowedValues = "";
+//        if (ex.getRequiredType() != null && ex.getRequiredType().isEnum()) {
+//            allowedValues = Arrays.toString(ex.getRequiredType().getEnumConstants());
+//        }
+//
+//        String errorMessage = String.format(
+//                "Invalid value '%s' for %s. Allowed values are: %s",
+//                invalidValue, fieldName, allowedValues
+//        );
+//
+//        ApiError apiError = ApiError.builder()
+//                .status(HttpStatus.BAD_REQUEST)
+//                .message("Input validation failed for arugment")
+//                .subErrors(Collections.singletonList(errorMessage))
+//                .build();
+//
+//        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
+//    }
+//
+//    @ExceptionHandler(IllegalArgumentException.class)
+//    public ResponseEntity<ApiResponse> handleIllegalArgumentException(IllegalArgumentException exception) {
+//        ApiError apiError = ApiError.builder()
+//                .status(HttpStatus.BAD_REQUEST)
+//                .message(exception.getMessage())
+//                .build();
+//        return buildErrorResponseEntity(apiError);
+//    }
+
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleGenericException(Exception e){
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    public ResponseEntity<ApiResponse> handleGenericException(Exception exception){
+        ApiError apiError = ApiError.builder()
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .message(exception.getMessage())
+                .build();
+        return buildErrorResponseEntity(apiError);
+    }
+
+    private ResponseEntity<ApiResponse> buildErrorResponseEntity(ApiError apiError){
+        return new ResponseEntity<>(new ApiResponse(apiError),apiError.getStatus());
     }
 }
