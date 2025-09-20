@@ -6,6 +6,7 @@ import com.practice.employee.employeeManagement.employeeManagement.exceptions.Re
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -36,22 +37,20 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<?> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
         List<String> subErrors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
                 .map(error -> {
-                    // If it's a type mismatch (enum conversion), customize the message
+                    // Handle enum conversion errors
                     if (error.contains(TypeMismatchException.class)) {
                         Object rejectedValue = error.getRejectedValue();
                         Class<?> targetType = error.unwrap(TypeMismatchException.class).getRequiredType();
                         if (targetType != null && targetType.isEnum()) {
                             return error.getField() + ": Invalid value '" + rejectedValue +
-                                    "'. Allowed values are: " +
-                                    Arrays.toString(targetType.getEnumConstants());
+                                    "'. Allowed values are: " + Arrays.toString(targetType.getEnumConstants());
                         }
                     }
-                    // Default message for normal validation
                     return error.getField() + ": " + error.getDefaultMessage();
                 })
                 .collect(Collectors.toList());
@@ -61,19 +60,30 @@ public class GlobalExceptionHandler {
                 .message("Input validation failed")
                 .subErrors(subErrors)
                 .build();
-        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
+        return buildErrorResponseEntity(apiError);
     }
 
+    // Catch Jackson wrapper for unknown fields
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
+        Throwable cause = ex.getCause();
+        if (cause instanceof UnrecognizedPropertyException) {
+            UnrecognizedPropertyException upe = (UnrecognizedPropertyException) cause;
+            String message = String.format("Unknown field '%s' in request", upe.getPropertyName());
 
-    @ExceptionHandler(UnrecognizedPropertyException.class)
-    public ResponseEntity<ApiResponse> handleUnknownProperty(UnrecognizedPropertyException ex) {
-        String message = String.format("Unknown field '%s' in request. Allowed fields: %s",
-                ex.getPropertyName(), ex.getKnownPropertyIds());
+            ApiError apiError = ApiError.builder()
+                    .status(HttpStatus.BAD_REQUEST)
+                    .message("Input validation failed")
+                    .subErrors(List.of(message))
+                    .build();
+            return buildErrorResponseEntity(apiError);
+        }
 
+        // fallback for other parse errors
         ApiError apiError = ApiError.builder()
                 .status(HttpStatus.BAD_REQUEST)
-                .message("Input validation failed")
-                .subErrors(List.of(message))
+                .message("Malformed JSON request")
+                .subErrors(List.of(ex.getMessage()))
                 .build();
         return buildErrorResponseEntity(apiError);
     }
