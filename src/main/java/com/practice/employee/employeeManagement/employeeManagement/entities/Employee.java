@@ -9,15 +9,20 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "employee")
+@Table(name = "employee",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"empName", "designation"})
+)
 public class Employee {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "emp_name", unique = true, nullable = false)
+    @Column(name = "emp_name", nullable = false)
     private String empName;
+
+    @Column(unique = true, nullable = false)
+    private String email;
 
     @Column(nullable = false)
     private String designation;

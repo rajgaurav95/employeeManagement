@@ -12,6 +12,7 @@ public class EmployeeResponseDto {
     private String designation;
 
     private String location;
+    private String email;
 
     private int salary;
     private LocalDateTime createdAt;

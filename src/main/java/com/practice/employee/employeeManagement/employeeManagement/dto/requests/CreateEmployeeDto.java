@@ -4,6 +4,7 @@ import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.aspectj.lang.annotation.RequiredTypes;
 
 @Data
 @AllArgsConstructor
@@ -13,12 +14,14 @@ public class CreateEmployeeDto {
     @NotBlank(message = "empName must not be blank")
     private String empName;
 
-    @NotBlank(message = "Designation must not be blank")
+    @NotBlank(message = "Email must not be blank")
+    private String email;
+
     private String designation;
 
     @NotBlank(message = "Location is mandatory")
     private String location;
 
     @Min(value = 0, message = "Salary must be positive")
-    private int salary;
+    private Integer salary;
 }

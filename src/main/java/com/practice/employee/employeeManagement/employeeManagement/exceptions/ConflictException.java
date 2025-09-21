@@ -1,7 +1,8 @@
 package com.practice.employee.employeeManagement.employeeManagement.exceptions;
 
-public class ConflictException extends RuntimeException{
-    ConflictException(String message){
+public class ConflictException extends RuntimeException {
+
+    public ConflictException(String message) {
         super(message);
     }
 }

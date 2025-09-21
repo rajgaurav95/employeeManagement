@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.practice.employee.employeeManagement.employeeManagement.exceptions.ConflictException;
 import com.practice.employee.employeeManagement.employeeManagement.exceptions.ResourceNotFoundException;
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -62,6 +63,35 @@ public class GlobalExceptionHandler {
                 .build();
         return buildErrorResponseEntity(apiError);
     }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        String rootMessage = ex.getRootCause() != null ? ex.getRootCause().getMessage() : ex.getMessage();
+
+        String message = "Database error";
+        if (rootMessage != null && rootMessage.contains("duplicate key value")) {
+            message = "Duplicate entry detected: " + extractConstraintMessage(rootMessage);
+        }
+
+        ApiError apiError = ApiError.builder()
+                .status(HttpStatus.CONFLICT)
+                .message(message)
+                .build();
+
+        return buildErrorResponseEntity(apiError);
+    }
+
+    private String extractConstraintMessage(String dbMessage) {
+        // Example dbMessage:
+        // ERROR: duplicate key value violates unique constraint "employee_email_key"
+        // Detail: Key (email)=(gk@gmail.com) already exists.
+        int detailIndex = dbMessage.indexOf("Detail:");
+        if (detailIndex != -1) {
+            return dbMessage.substring(detailIndex).replace("Detail:", "").trim();
+        }
+        return dbMessage;
+    }
+
 
     // Catch Jackson wrapper for unknown fields
     @ExceptionHandler(HttpMessageNotReadableException.class)

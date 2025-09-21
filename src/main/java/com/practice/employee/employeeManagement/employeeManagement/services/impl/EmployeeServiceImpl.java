@@ -27,22 +27,20 @@ import java.util.stream.Collectors;
 public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeRepository employeeRepository;
-    private  final ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
 
 
     @Override
     public List<EmployeeResponseDto> getAllEmployee(GetQueryParamsDto getQueryParamsDto) {
         Pageable pageable = buildPageable(getQueryParamsDto);
 
-//        Specification<Employee> spec = Specification.where(EmployeeSpecification.hasLocation(getQueryParamsDto.getLocation())
-//                .and(EmployeeSpecification.hasDesignation(getQueryParamsDto.getDesignation())));
-
         Specification<Employee> spec = Specification.allOf(
-                EmployeeSpecification.hasLocation(getQueryParamsDto.getLocation()),
-                EmployeeSpecification.hasDesignation(getQueryParamsDto.getDesignation())
+                EmployeeSpecification.employeeFieldEqualsIgnoreCase("location", getQueryParamsDto.getLocation()),
+                EmployeeSpecification.employeeFieldEqualsIgnoreCase("designation", getQueryParamsDto.getDesignation()),
+                EmployeeSpecification.employeeFieldEqualsIgnoreCase("email", getQueryParamsDto.getEmail())
         );
 
-        Page<Employee> employees = employeeRepository.findAll(spec,pageable);
+        Page<Employee> employees = employeeRepository.findAll(spec, pageable);
 
         return employees.stream()
                 .map(employee -> modelMapper.map(employee, EmployeeResponseDto.class))
@@ -73,38 +71,18 @@ public class EmployeeServiceImpl implements EmployeeService {
         );
     }
 
-
-//    @Override
-//    public List<EmployeeDto> getAllEmployee(GetQueryParamsDto getQueryParamsDto) {
-//        Sort.Direction direction = Sort.Direction.valueOf(getQueryParamsDto.getSortDir().name());
-//        String sortByField = getQueryParamsDto.getSortBy().getField();
-//
-//        Pageable pageable = PageRequest.of(
-//                getQueryParamsDto.getPage(),
-//                getQueryParamsDto.getPageSize(),
-//                Sort.by(direction, sortByField)
-//        );
-//
-//        Page<Employee> employees = employeeRepository.findAll(pageable);
-//
-//        return employees.stream()
-//                .map(employee -> modelMapper.map(employee, EmployeeDto.class))
-//                .collect(Collectors.toList());
-//    }
-
-
     @Override
     public EmployeeResponseDto saveEmployee(CreateEmployeeDto employeeDto) {
         Employee employee = modelMapper.map(employeeDto, Employee.class);
         Employee savedEmployee = employeeRepository.save(employee);
-        System.out.println("empl saved");
         return modelMapper.map(savedEmployee, EmployeeResponseDto.class);
     }
 
     @Override
     public EmployeeResponseDto getByEmpId(long empId) {
         Employee employee = employeeRepository.findById(empId)
-                .orElseThrow(() ->  new ResourceNotFoundException("employee not present in table"));
+                .orElseThrow(() -> new ResourceNotFoundException("employee not present in table"));
         return modelMapper.map(employee, EmployeeResponseDto.class);
     }
+
 }
