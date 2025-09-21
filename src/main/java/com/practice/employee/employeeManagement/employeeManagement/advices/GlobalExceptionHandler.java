@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
@@ -93,14 +94,12 @@ public class GlobalExceptionHandler {
     }
 
 
-    // Catch Jackson wrapper for unknown fields
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponse> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
         Throwable cause = ex.getCause();
-        if (cause instanceof UnrecognizedPropertyException) {
-            UnrecognizedPropertyException upe = (UnrecognizedPropertyException) cause;
-            String message = String.format("Unknown field '%s' in request", upe.getPropertyName());
 
+        if (cause instanceof UnrecognizedPropertyException upe) {
+            String message = String.format("Unknown field '%s' in request", upe.getPropertyName());
             ApiError apiError = ApiError.builder()
                     .status(HttpStatus.BAD_REQUEST)
                     .message("Input validation failed")
@@ -109,7 +108,23 @@ public class GlobalExceptionHandler {
             return buildErrorResponseEntity(apiError);
         }
 
-        // fallback for other parse errors
+        if (cause instanceof com.fasterxml.jackson.databind.exc.MismatchedInputException mie) {
+            // Build a clean path using the reference chain
+            String fieldPath = mie.getPath().stream()
+                    .map(ref -> ref.getFieldName())   // get only the field name
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.joining("."));
+
+            String message = String.format("Invalid value for field '%s'", fieldPath);
+            ApiError apiError = ApiError.builder()
+                    .status(HttpStatus.BAD_REQUEST)
+                    .message("Malformed JSON request")
+                    .subErrors(List.of(message))
+                    .build();
+            return buildErrorResponseEntity(apiError);
+        }
+
+        // fallback
         ApiError apiError = ApiError.builder()
                 .status(HttpStatus.BAD_REQUEST)
                 .message("Malformed JSON request")
@@ -117,6 +132,7 @@ public class GlobalExceptionHandler {
                 .build();
         return buildErrorResponseEntity(apiError);
     }
+
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse> handleGenericException(Exception exception) {

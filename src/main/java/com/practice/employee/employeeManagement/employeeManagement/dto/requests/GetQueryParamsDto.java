@@ -19,6 +19,7 @@ public class GetQueryParamsDto {
     private String location;
     private String designation;
     private String email;
+    private String city;
 
     private SortBy sortBy;   // ✅ nullable
     private SortDir sortDir; // ✅ nullable

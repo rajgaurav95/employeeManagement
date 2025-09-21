@@ -37,7 +37,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         Specification<Employee> spec = Specification.allOf(
                 EmployeeSpecification.employeeFieldEqualsIgnoreCase("location", getQueryParamsDto.getLocation()),
                 EmployeeSpecification.employeeFieldEqualsIgnoreCase("designation", getQueryParamsDto.getDesignation()),
-                EmployeeSpecification.employeeFieldEqualsIgnoreCase("email", getQueryParamsDto.getEmail())
+                EmployeeSpecification.employeeFieldEqualsIgnoreCase("email", getQueryParamsDto.getEmail()),
+                EmployeeSpecification.employeeFieldEqualsIgnoreCase("city", getQueryParamsDto.getCity())
         );
 
         Page<Employee> employees = employeeRepository.findAll(spec, pageable);

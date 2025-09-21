@@ -1,5 +1,6 @@
 package com.practice.employee.employeeManagement.employeeManagement.entities;
 
+import com.practice.employee.employeeManagement.employeeManagement.dto.requests.Address;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -40,4 +41,7 @@ public class Employee {
     @UpdateTimestamp
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    @Embedded
+    private Address address;
 }

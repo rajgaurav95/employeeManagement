@@ -1,5 +1,6 @@
 package com.practice.employee.employeeManagement.employeeManagement.dto.responses;
 
+import com.practice.employee.employeeManagement.employeeManagement.dto.requests.Address;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -17,4 +18,6 @@ public class EmployeeResponseDto {
     private int salary;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    private Address address;
 }
